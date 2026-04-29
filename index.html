@@ -1,1 +1,940 @@
-
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="バイト管理">
+<meta name="theme-color" content="#0a0a0f">
+<title>バイト収入管理</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0a0f;--surface:#12121a;--card:#1a1a26;--border:#2a2a3e;
+  --accent:#7c6aff;--accent2:#ff6a9b;--accent3:#6affd4;
+  --text:#e8e8f0;--muted:#7a7a9a;--warn:#ffb347;--danger:#ff4f6a;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{-webkit-text-size-adjust:100%;}
+body{background:var(--bg);color:var(--text);font-family:'Noto Sans JP',sans-serif;
+  min-height:100dvh;padding:16px 14px env(safe-area-inset-bottom,24px);position:relative;overflow-x:hidden;}
+body::before{content:'';position:fixed;top:-40%;left:-20%;width:80%;height:80%;
+  background:radial-gradient(ellipse,rgba(124,106,255,.08) 0%,transparent 70%);pointer-events:none;z-index:0;}
+body::after{content:'';position:fixed;bottom:-30%;right:-10%;width:60%;height:60%;
+  background:radial-gradient(ellipse,rgba(255,106,155,.07) 0%,transparent 70%);pointer-events:none;z-index:0;}
+.container{max-width:520px;margin:0 auto;position:relative;z-index:1;}
+header{text-align:center;padding:18px 0 20px;}
+header .lbl{font-size:10px;letter-spacing:3px;color:var(--accent);text-transform:uppercase;font-family:'Space Mono',monospace;margin-bottom:5px;}
+header h1{font-size:23px;font-weight:900;letter-spacing:-.5px;}
+header h1 span{background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.top-bar{display:flex;gap:6px;margin-bottom:13px;flex-wrap:wrap;}
+.top-btn{flex:1;min-width:0;font-size:10px;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--muted);
+  padding:7px 8px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:4px;transition:border-color .2s,color .2s;}
+.top-btn:hover{border-color:var(--accent);color:var(--text);}
+.top-btn .val{font-family:'Space Mono',monospace;font-size:11px;color:var(--text);}
+.budget-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:17px 19px 19px;margin-bottom:13px;}
+.bh{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:11px;}
+.bt{font-size:10px;color:var(--muted);letter-spacing:1px;}
+.bl{font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);cursor:pointer;}
+.bl:hover{color:var(--accent);}
+.bn{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:9px;}
+.ea{font-family:'Space Mono',monospace;font-size:27px;font-weight:700;color:var(--accent3);letter-spacing:-1px;}
+.ea .y{font-size:14px;margin-right:2px;}
+.ra{font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);text-align:right;}
+.ra .v{font-size:16px;color:var(--text);display:block;}
+.bar-track{height:7px;background:var(--border);border-radius:99px;overflow:hidden;position:relative;}
+.bar-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .6s cubic-bezier(.4,0,.2,1);}
+.bar-fill.warn{background:linear-gradient(90deg,var(--warn),var(--accent2));}
+.bar-fill.danger{background:linear-gradient(90deg,var(--danger),#ff9f1c);}
+.bar-markers{position:relative;height:12px;margin-top:2px;}
+.bar-marker{position:absolute;transform:translateX(-50%);font-size:8px;color:var(--muted);font-family:'Space Mono',monospace;}
+.bar-marker::before{content:'|';display:block;text-align:center;color:var(--border);}
+.bpct{font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);margin-top:3px;text-align:right;}
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:17px 19px;margin-bottom:13px;}
+.card-title{font-size:11px;font-weight:700;letter-spacing:1px;color:var(--muted);margin-bottom:13px;text-transform:uppercase;display:flex;justify-content:space-between;align-items:center;}
+.cta{font-size:11px;color:var(--accent);cursor:pointer;background:none;border:none;font-family:'Noto Sans JP',sans-serif;letter-spacing:0;padding:0;}
+.fr{display:flex;gap:10px;margin-bottom:10px;align-items:flex-end;}
+.fld{flex:1;display:flex;flex-direction:column;gap:5px;}
+.fld label{font-size:10px;color:var(--muted);letter-spacing:.5px;}
+.fld input[type=date],.fld input[type=time],.fld input[type=number],.fld select{
+  background:var(--surface);border:1px solid var(--border);border-radius:10px;
+  color:var(--text);font-family:'Space Mono',monospace;font-size:14px;
+  padding:10px 11px;width:100%;outline:none;transition:border-color .2s;
+  -webkit-appearance:none;color-scheme:dark;}
+.fld select option{background:var(--surface);}
+.fld input:focus,.fld select:focus{border-color:var(--accent);}
+.tr{display:flex;align-items:center;gap:10px;margin-bottom:10px;padding:10px 13px;background:var(--surface);border-radius:10px;border:1px solid var(--border);}
+.tr label{font-size:12px;cursor:pointer;flex:1;}
+.tgl{position:relative;width:38px;height:21px;flex-shrink:0;}
+.tgl input{opacity:0;width:0;height:0;}
+.ts{position:absolute;inset:0;background:var(--border);border-radius:99px;cursor:pointer;transition:background .2s;}
+.ts::before{content:'';position:absolute;left:3px;top:2.5px;width:16px;height:16px;background:var(--muted);border-radius:50%;transition:transform .2s,background .2s;}
+.tgl input:checked+.ts{background:var(--accent);}
+.tgl input:checked+.ts::before{transform:translateX(17px);background:#fff;}
+.cf{display:none;flex-direction:column;gap:5px;margin-bottom:10px;}
+.cf.show{display:flex;}
+.cf label{font-size:10px;color:var(--muted);}
+.btn-sm{padding:10px 15px;border-radius:10px;border:none;cursor:pointer;font-family:'Noto Sans JP',sans-serif;font-size:12px;font-weight:700;transition:opacity .2s;white-space:nowrap;}
+.btn-sm.p{background:var(--accent);color:#fff;}
+.btn-sm.s{background:var(--surface);border:1px solid var(--border);color:var(--muted);}
+.btn-sm.warn{background:var(--warn);color:#000;}
+.btn-sm:hover{opacity:.85;}
+.btn-add{width:100%;padding:13px;background:linear-gradient(135deg,var(--accent),#5b4de8);border:none;border-radius:12px;color:#fff;
+  font-family:'Noto Sans JP',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:opacity .2s,transform .1s;}
+.btn-add:hover{opacity:.9;}
+.btn-add:active{transform:scale(.98);}
+.rate-row{display:flex;gap:10px;align-items:flex-end;margin-bottom:8px;}
+.rate-row .fld{flex:1;}
+.rate-note{font-size:10px;color:var(--muted);line-height:1.6;}
+.rate-note b{color:var(--warn);}
+.past-row{display:flex;gap:10px;align-items:flex-end;}
+.past-row .fld{flex:1;}
+.ps{margin-top:9px;display:flex;justify-content:space-between;align-items:center;padding:9px 13px;background:var(--surface);border-radius:10px;border:1px solid var(--border);}
+.psl{font-size:10px;color:var(--muted);}
+.psv{font-family:'Space Mono',monospace;font-size:13px;font-weight:700;color:var(--accent2);}
+.psc{background:none;border:none;color:var(--muted);font-size:11px;cursor:pointer;padding:2px 5px;border-radius:4px;transition:color .2s;}
+.psc:hover{color:var(--danger);}
+.result-card{display:none;}
+.result-card.show{display:block;}
+.rg{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:10px;}
+.ri{background:var(--surface);border-radius:10px;padding:11px 13px;}
+.ri .rl{font-size:9px;color:var(--muted);margin-bottom:3px;}
+.ri .rv{font-family:'Space Mono',monospace;font-size:15px;font-weight:700;}
+.ri.hi .rv{color:var(--accent3);}
+.ri.wi .rv{color:var(--warn);}
+.breakdown{background:var(--surface);border-radius:10px;padding:11px 13px;font-size:11px;color:var(--muted);line-height:1.9;}
+.advice-card{display:none;}
+.advice-card.show{display:block;}
+.ag{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:12px;}
+.ai-box{background:var(--surface);border-radius:10px;padding:13px;text-align:center;}
+.ai-box .al{font-size:9px;color:var(--muted);margin-bottom:5px;}
+.ai-box .av{font-family:'Space Mono',monospace;font-size:18px;font-weight:700;color:var(--accent);}
+.ai-box .as{font-size:9px;color:var(--muted);margin-top:2px;}
+.shift-adv{background:var(--surface);border-radius:12px;padding:14px 16px;border-left:3px solid var(--accent);font-size:12px;line-height:1.8;color:var(--text);}
+.shift-adv .at{font-size:9px;color:var(--accent);letter-spacing:1px;margin-bottom:8px;font-weight:700;text-transform:uppercase;}
+.shift-adv ul{padding-left:0;list-style:none;}
+.shift-adv ul li{padding:2px 0;display:flex;gap:8px;}
+.shift-adv ul li::before{content:'→';color:var(--accent);flex-shrink:0;}
+.alert-box{border-radius:10px;padding:11px 13px;font-size:11px;margin-top:10px;line-height:1.7;display:none;}
+.alert-box.warn{background:rgba(255,179,71,.1);border:1px solid rgba(255,179,71,.3);color:var(--warn);display:block;}
+.alert-box.danger{background:rgba(255,79,106,.1);border:1px solid rgba(255,79,106,.3);color:var(--danger);display:block;}
+.hh{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+.hh h2{font-size:11px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;font-weight:700;}
+.btn-clear{font-size:10px;color:var(--muted);background:none;border:1px solid var(--border);border-radius:6px;padding:4px 10px;cursor:pointer;transition:color .2s,border-color .2s;}
+.btn-clear:hover{color:var(--danger);border-color:var(--danger);}
+.hem{text-align:center;color:var(--muted);font-size:12px;padding:22px 0;}
+.hl{display:flex;flex-direction:column;gap:7px;}
+.hi-item{background:var(--surface);border-radius:10px;padding:10px 13px;}
+.hi-main{display:flex;justify-content:space-between;align-items:center;gap:8px;}
+.hid{font-size:11px;color:var(--muted);min-width:72px;}
+.hdet{font-size:10px;color:var(--muted);flex:1;line-height:1.5;}
+.hdet span{color:var(--text);}
+.ham{font-family:'Space Mono',monospace;font-size:13px;font-weight:700;color:var(--accent3);white-space:nowrap;}
+.hi-actions{display:flex;gap:4px;}
+.hedit{background:none;border:1px solid var(--border);color:var(--muted);cursor:pointer;font-size:11px;padding:3px 8px;border-radius:6px;transition:all .2s;}
+.hedit:hover{border-color:var(--accent);color:var(--accent);}
+.hdel{background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;padding:2px 4px;border-radius:4px;transition:color .2s;}
+.hdel:hover{color:var(--danger);}
+.tag{display:inline-block;font-size:9px;padding:1px 5px;border-radius:4px;font-weight:700;vertical-align:middle;margin-left:3px;}
+.tag.ot{background:rgba(255,179,71,.15);color:var(--warn);}
+.tag.nd{background:rgba(124,106,255,.15);color:var(--accent);}
+.brk-list{display:flex;flex-direction:column;gap:8px;margin-bottom:10px;}
+.brk-item{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 12px;}
+.brk-item-row{display:flex;gap:8px;align-items:flex-end;}
+.brk-item-row .fld{flex:1;}
+.brk-night-row{display:flex;align-items:center;gap:8px;margin-top:8px;padding-top:8px;border-top:1px solid var(--border);}
+.brk-night-row label{font-size:11px;color:var(--muted);cursor:pointer;flex:1;}
+.night-badge{font-size:9px;padding:2px 7px;border-radius:99px;background:rgba(124,106,255,.15);color:var(--accent);font-weight:700;display:none;}
+.night-badge.show{display:inline-block;}
+.brk-del{background:none;border:none;color:var(--muted);font-size:14px;cursor:pointer;padding:3px 5px;border-radius:6px;transition:color .2s;flex-shrink:0;align-self:flex-end;}
+.brk-del:hover{color:var(--danger);}
+.btn-add-brk{width:100%;padding:9px;background:none;border:1px dashed var(--border);border-radius:10px;color:var(--muted);font-size:12px;cursor:pointer;transition:border-color .2s,color .2s;margin-bottom:10px;}
+.btn-add-brk:hover{border-color:var(--accent);color:var(--accent);}
+.brk-summary{font-size:10px;color:var(--muted);margin-bottom:12px;padding:7px 11px;background:var(--surface);border-radius:8px;line-height:1.7;}
+.brk-summary b{color:var(--text);}
+/* monthly chart */
+.month-bars{display:flex;align-items:flex-end;gap:4px;height:90px;margin-bottom:6px;}
+.month-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;}
+.month-bar-bg{width:100%;background:var(--border);border-radius:3px;overflow:hidden;height:72px;display:flex;align-items:flex-end;position:relative;}
+.month-bar-fill{width:100%;border-radius:3px;background:linear-gradient(180deg,var(--accent),#5b4de8);transition:height .5s cubic-bezier(.4,0,.2,1);min-height:0;}
+.month-bar-fill.has-goal{background:linear-gradient(180deg,var(--accent3),#2ad4a0);}
+.month-bar-fill.over-goal{background:linear-gradient(180deg,var(--warn),#e8941a);}
+.month-label{font-size:8px;color:var(--muted);font-family:'Space Mono',monospace;}
+.month-amt{font-size:7px;color:var(--muted);font-family:'Space Mono',monospace;white-space:nowrap;}
+.month-legend{display:flex;gap:10px;font-size:9px;color:var(--muted);margin-top:4px;}
+.month-legend span{display:flex;align-items:center;gap:4px;}
+.month-legend .dot{width:6px;height:6px;border-radius:50%;}
+/* monthly summary */
+.msummary-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px;}
+.ms-item{background:var(--surface);border-radius:9px;padding:10px 12px;text-align:center;}
+.ms-label{font-size:9px;color:var(--muted);margin-bottom:4px;}
+.ms-val{font-family:'Space Mono',monospace;font-size:14px;font-weight:700;color:var(--accent);}
+.ms-sub{font-size:8px;color:var(--muted);margin-top:2px;}
+.month-tabs{display:flex;gap:6px;margin-bottom:12px;overflow-x:auto;padding-bottom:4px;}
+.month-tab{font-size:11px;padding:5px 12px;border-radius:99px;background:var(--surface);border:1px solid var(--border);color:var(--muted);cursor:pointer;white-space:nowrap;transition:all .2s;flex-shrink:0;}
+.month-tab.active{background:var(--accent);border-color:var(--accent);color:#fff;}
+/* goal */
+.goal-row{display:flex;gap:10px;align-items:flex-end;margin-bottom:8px;}
+.goal-row .fld{flex:1;}
+.goal-saved{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--surface);border-radius:8px;border:1px solid var(--border);margin-top:8px;}
+.goal-saved-lbl{font-size:10px;color:var(--muted);}
+.goal-saved-val{font-family:'Space Mono',monospace;font-size:13px;font-weight:700;color:var(--accent3);}
+.goal-clear{background:none;border:none;color:var(--muted);font-size:11px;cursor:pointer;padding:2px 5px;border-radius:4px;transition:color .2s;}
+.goal-clear:hover{color:var(--danger);}
+/* simulation */
+.sim-result{background:var(--surface);border-radius:10px;padding:12px 14px;margin-top:10px;font-size:12px;line-height:1.8;display:none;}
+.sim-result.show{display:block;}
+.sim-hi{color:var(--accent3);font-family:'Space Mono',monospace;font-weight:700;}
+.sim-warn{color:var(--warn);}
+.sim-danger{color:var(--danger);}
+/* limit selector */
+.limit-pills{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px;}
+.limit-pill{font-size:11px;padding:6px 13px;border-radius:99px;background:var(--surface);border:1px solid var(--border);color:var(--muted);cursor:pointer;transition:all .2s;}
+.limit-pill.active{background:var(--accent);border-color:var(--accent);color:#fff;}
+/* export */
+.export-btns{display:flex;gap:8px;flex-wrap:wrap;}
+.export-btns .btn-sm{flex:1;}
+/* AI chat */
+.ai-chat{display:flex;flex-direction:column;gap:10px;}
+.ai-chat-msgs{display:flex;flex-direction:column;gap:8px;max-height:300px;overflow-y:auto;padding-right:2px;}
+.ai-chat-msgs::-webkit-scrollbar{width:3px;}
+.ai-chat-msgs::-webkit-scrollbar-thumb{background:var(--border);border-radius:99px;}
+.msg{padding:10px 13px;border-radius:12px;font-size:12px;line-height:1.7;max-width:92%;}
+.msg.ai{background:var(--surface);border:1px solid var(--border);color:var(--text);align-self:flex-start;border-bottom-left-radius:4px;}
+.msg.ai .msg-label{font-size:9px;color:var(--accent);font-weight:700;margin-bottom:4px;letter-spacing:.5px;}
+.msg.user{background:linear-gradient(135deg,var(--accent),#5b4de8);color:#fff;align-self:flex-end;border-bottom-right-radius:4px;}
+.msg.loading{background:var(--surface);border:1px solid var(--border);align-self:flex-start;}
+.msg.loading .dots span{display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--muted);margin:0 2px;animation:bounce .9s infinite;}
+.msg.loading .dots span:nth-child(2){animation-delay:.15s;}
+.msg.loading .dots span:nth-child(3){animation-delay:.3s;}
+@keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-5px)}}
+.ai-input-row{display:flex;gap:8px;align-items:flex-end;}
+.ai-input{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'Noto Sans JP',sans-serif;font-size:13px;padding:10px 12px;outline:none;resize:none;transition:border-color .2s;line-height:1.5;max-height:80px;}
+.ai-input:focus{border-color:var(--accent);}
+.ai-send{padding:10px 14px;background:var(--accent);border:none;border-radius:10px;color:#fff;font-size:16px;cursor:pointer;transition:opacity .2s;flex-shrink:0;}
+.ai-send:hover{opacity:.85;}
+.ai-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;}
+.ai-chip{font-size:10px;padding:5px 10px;border-radius:99px;background:var(--surface);border:1px solid var(--border);color:var(--muted);cursor:pointer;transition:all .2s;white-space:nowrap;}
+.ai-chip:hover{border-color:var(--accent);color:var(--accent);}
+/* modal / overlay */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;align-items:flex-end;justify-content:center;}
+.overlay.show{display:flex;}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:20px 20px 0 0;padding:22px 20px;width:100%;max-width:520px;max-height:90dvh;overflow-y:auto;}
+.modal-title{font-size:14px;font-weight:700;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;}
+.modal-close{background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;padding:2px 6px;}
+/* PWA banner */
+.pwa-banner{background:var(--surface);border:1px solid var(--accent);border-radius:12px;padding:12px 15px;margin-bottom:13px;display:flex;align-items:center;gap:11px;}
+.pwa-icon{font-size:20px;flex-shrink:0;}
+.pwa-text{flex:1;font-size:10px;color:var(--muted);line-height:1.6;}
+.pwa-text b{color:var(--text);display:block;font-size:11px;margin-bottom:2px;}
+.btn-pwa{padding:7px 12px;background:var(--accent);border:none;border-radius:8px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;}
+.btn-pwa-x{background:none;border:none;color:var(--muted);font-size:16px;cursor:pointer;padding:4px;}
+</style>
+</head>
+<body>
+<div class="container">
+<header>
+  <div class="lbl">Baito Income Tracker</div>
+  <h1>バイト<span>収入管理</span></h1>
+</header>
+ 
+<div class="pwa-banner" id="pwaBanner" style="display:none">
+  <div class="pwa-icon">📲</div>
+  <div class="pwa-text"><b>ホーム画面に追加できます</b>iPhoneは「共有」→「ホーム画面に追加」</div>
+  <button class="btn-pwa" id="btnInstall" style="display:none">追加</button>
+  <button class="btn-pwa-x" onclick="closePwa()">✕</button>
+</div>
+ 
+<div class="top-bar">
+  <button class="top-btn" onclick="changeYear()"><span>年度</span><span class="val" id="yearLabel">—</span></button>
+  <button class="top-btn" onclick="toggleRateCard()"><span>時給</span><span class="val" id="rateLabel">¥—</span></button>
+  <button class="top-btn" onclick="openLimitModal()"><span>上限</span><span class="val" id="limitLabel">—</span></button>
+</div>
+ 
+<!-- Budget -->
+<div class="budget-card">
+  <div class="bh"><span class="bt">年間収入状況</span><span class="bl" id="limitDisplay" onclick="openLimitModal()">上限 1,300,000円 ▾</span></div>
+  <div class="bn">
+    <div class="ea"><span class="y">¥</span><span id="totalEarned">0</span></div>
+    <div class="ra">あと稼げる金額<span class="v" id="remainingDisplay">¥0</span></div>
+  </div>
+  <div class="bar-track"><div class="bar-fill" id="barFill" style="width:0%"></div></div>
+  <div class="bar-markers" id="barMarkers"></div>
+  <div class="bpct" id="barPct">0.0%</div>
+</div>
+ 
+<!-- Rate card (collapsible) -->
+<div class="card" id="rateCard" style="display:none">
+  <div class="card-title">時給を変更<button class="cta" onclick="toggleRateCard()">✕ 閉じる</button></div>
+  <div class="rate-row">
+    <div class="fld"><label>時給（円）</label><input type="number" id="rateInput" min="800" max="9999" step="10"></div>
+    <button class="btn-sm p" onclick="applyRate()">適用・再計算</button>
+  </div>
+  <p class="rate-note">適用すると<b>全記録を新しい時給で再計算</b>します</p>
+</div>
+ 
+<!-- Past income -->
+<div class="card">
+  <div class="card-title">過去の収入<button class="cta" id="pastToggleBtn" onclick="togglePastBody()">▾ 開く</button></div>
+  <div id="pastBody" style="display:none">
+    <p style="font-size:10px;color:var(--muted);margin-bottom:11px;line-height:1.6">このアプリを使う前に稼いだ金額を入力してください</p>
+    <div class="past-row">
+      <div class="fld"><label>金額（円）</label><input type="number" id="pastIncomeInput" placeholder="例: 150000" min="0" step="1"></div>
+      <button class="btn-sm p" onclick="savePastIncome()">設定</button>
+    </div>
+    <div class="ps" id="pastSavedRow" style="display:none">
+      <span class="psl">設定済み過去収入</span>
+      <span class="psv" id="pastSavedVal">¥0</span>
+      <button class="psc" onclick="clearPastIncome()">✕ リセット</button>
+    </div>
+  </div>
+</div>
+ 
+<!-- Input -->
+<div class="card" id="inputCard">
+  <div class="card-title" id="inputCardTitle">勤務を追加</div>
+  <div class="fr"><div class="fld"><label>勤務日</label><input type="date" id="workDate"></div></div>
+  <div class="fr">
+    <div class="fld"><label>開始時刻</label><input type="time" id="startTime"></div>
+    <div class="fld"><label>終了時刻</label><input type="time" id="endTime"></div>
+  </div>
+  <div class="tr">
+    <label for="otToggle">残業あり（所定時間を超えた）</label>
+    <label class="tgl"><input type="checkbox" id="otToggle" onchange="toggleOT()"><span class="ts"></span></label>
+  </div>
+  <div class="cf" id="otField"><label>所定終了時刻（ここから残業）</label><input type="time" id="regEndTime"></div>
+  <div style="font-size:10px;color:var(--muted);letter-spacing:.5px;margin-bottom:8px;">休憩</div>
+  <div class="brk-list" id="brkList"></div>
+  <button class="btn-add-brk" onclick="addBreak()">＋ 休憩を追加</button>
+  <div class="brk-summary" id="brkSummary" style="display:none"></div>
+  <div style="display:flex;gap:8px;">
+    <button class="btn-add" id="submitBtn" onclick="submitShift()">この日の勤務を追加</button>
+    <button class="btn-sm s" id="cancelEditBtn" style="display:none" onclick="cancelEdit()">キャンセル</button>
+  </div>
+</div>
+ 
+<!-- Result -->
+<div class="card result-card" id="resultCard">
+  <div class="card-title">直近の計算結果</div>
+  <div class="rg">
+    <div class="ri hi"><div class="rl">この日の収入</div><div class="rv" id="resIncome">¥0</div></div>
+    <div class="ri"><div class="rl">実働時間</div><div class="rv" id="resHours">0h 0m</div></div>
+    <div class="ri"><div class="rl">通常時間</div><div class="rv" id="resNormal">0h 0m</div></div>
+    <div class="ri wi"><div class="rl">深夜時間</div><div class="rv" id="resNight">0h 0m</div></div>
+  </div>
+  <div class="breakdown" id="breakdown"></div>
+</div>
+ 
+<!-- Simulation -->
+<div class="card">
+  <div class="card-title">シフトシミュレーション<button class="cta" id="simToggleBtn" onclick="toggleSimBody()">▾ 開く</button></div>
+  <div id="simBody" style="display:none">
+    <p style="font-size:10px;color:var(--muted);margin-bottom:11px;line-height:1.6">シフトを入れたら年間・月間いくらになるか事前確認できます</p>
+    <div class="fr">
+      <div class="fld"><label>開始時刻</label><input type="time" id="simStart"></div>
+      <div class="fld"><label>終了時刻</label><input type="time" id="simEnd"></div>
+    </div>
+    <div class="fr">
+      <div class="fld"><label>週何回</label>
+        <select id="simDays">
+          <option value="1">週1回</option><option value="2">週2回</option>
+          <option value="3" selected>週3回</option><option value="4">週4回</option>
+          <option value="5">週5回</option>
+        </select>
+      </div>
+      <div class="fld"><label>何週間</label><input type="number" id="simWeeks" value="4" min="1" max="52" step="1"></div>
+    </div>
+    <div class="tr">
+      <label for="simOT">残業あり</label>
+      <label class="tgl"><input type="checkbox" id="simOT" onchange="toggleSimOT()"><span class="ts"></span></label>
+    </div>
+    <div class="cf" id="simOTField"><label>所定終了時刻</label><input type="time" id="simRegEnd"></div>
+    <button class="btn-sm p" style="width:100%;margin-top:4px" onclick="runSim()">シミュレーション実行</button>
+    <div class="sim-result" id="simResult"></div>
+  </div>
+</div>
+ 
+<!-- Monthly chart + summary -->
+<div class="card">
+  <div class="card-title">月別収入</div>
+  <div class="month-bars" id="monthBars"></div>
+  <div class="month-legend">
+    <span><span class="dot" style="background:var(--accent)"></span>通常</span>
+    <span><span class="dot" style="background:var(--accent3)"></span>目標達成</span>
+    <span><span class="dot" style="background:var(--warn)"></span>超過</span>
+  </div>
+</div>
+ 
+<!-- Monthly summary detail -->
+<div class="card">
+  <div class="card-title">月別サマリー</div>
+  <div class="month-tabs" id="monthTabs"></div>
+  <div id="monthlySummaryBody"></div>
+</div>
+ 
+<!-- Goal -->
+<div class="card">
+  <div class="card-title">月の目標収入<button class="cta" id="goalToggleBtn" onclick="toggleGoalBody()">▾ 設定</button></div>
+  <div id="goalBody" style="display:none">
+    <div class="goal-row">
+      <div class="fld"><label>月の目標金額（円）</label><input type="number" id="goalInput" placeholder="例: 80000" min="0" step="1000"></div>
+      <button class="btn-sm p" onclick="saveGoal()">設定</button>
+    </div>
+    <div class="goal-saved" id="goalSavedRow" style="display:none">
+      <span class="goal-saved-lbl">設定中の月目標</span>
+      <span class="goal-saved-val" id="goalSavedVal">¥0</span>
+      <button class="goal-clear" onclick="clearGoal()">✕</button>
+    </div>
+  </div>
+</div>
+ 
+<!-- Advice -->
+<div class="card advice-card" id="adviceCard">
+  <div class="card-title">今後の余力とアドバイス</div>
+  <div class="ag">
+    <div class="ai-box"><div class="al">あと稼げる金額</div><div class="av" id="futMoney">¥—</div><div class="as">（上限まで）</div></div>
+    <div class="ai-box"><div class="al">通常時間換算</div><div class="av" id="futHours">—h</div><div class="as">昼・残業なし</div></div>
+    <div class="ai-box"><div class="al">深夜のみ換算</div><div class="av" id="futNight">—h</div><div class="as">22〜5時のみ</div></div>
+    <div class="ai-box"><div class="al">残業のみ換算</div><div class="av" id="futOT">—h</div><div class="as">残業（昼）のみ</div></div>
+  </div>
+  <div class="shift-adv"><div class="at">💡 シフトアドバイス</div><ul id="advList"></ul></div>
+  <div class="alert-box" id="alertBox"></div>
+</div>
+ 
+<!-- AI Advisor -->
+<div class="card">
+  <div class="card-title">🤖 AIアドバイザー</div>
+  <div class="ai-chips">
+    <div class="ai-chip" onclick="sendChip(this)">今月あといくら稼げる？</div>
+    <div class="ai-chip" onclick="sendChip(this)">目標達成できそう？</div>
+    <div class="ai-chip" onclick="sendChip(this)">おすすめシフトを教えて</div>
+    <div class="ai-chip" onclick="sendChip(this)">130万円に近づいてる？</div>
+    <div class="ai-chip" onclick="sendChip(this)">深夜バイトはお得？</div>
+  </div>
+  <div class="ai-chat">
+    <div class="ai-chat-msgs" id="aiMsgs">
+      <div class="msg ai"><div class="msg-label">AI ADVISOR</div>こんにちは！バイトの収入について何でも聞いてください😊</div>
+    </div>
+    <div class="ai-input-row">
+      <textarea class="ai-input" id="aiInput" placeholder="質問を入力..." rows="1"
+        onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendAI()}"
+        oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
+      <button class="ai-send" onclick="sendAI()">↑</button>
+    </div>
+  </div>
+</div>
+ 
+<!-- Export -->
+<div class="card">
+  <div class="card-title">データのエクスポート</div>
+  <p style="font-size:10px;color:var(--muted);margin-bottom:12px;line-height:1.6">勤務データをファイルに書き出せます。機種変更時のバックアップにも使えます。</p>
+  <div class="export-btns">
+    <button class="btn-sm p" onclick="exportCSV()">📊 CSV</button>
+    <button class="btn-sm s" onclick="exportText()">📝 テキスト</button>
+    <button class="btn-sm s" onclick="exportJSON()">💾 バックアップ</button>
+    <button class="btn-sm warn" onclick="importJSON()">📥 復元</button>
+  </div>
+</div>
+ 
+<!-- History -->
+<div class="card">
+  <div class="hh"><h2>勤務履歴</h2><button class="btn-clear" onclick="clearAll()">全削除</button></div>
+  <div id="historyList" class="hl"><div class="hem">まだ記録がありません</div></div>
+</div>
+ 
+</div><!-- /container -->
+ 
+<!-- Limit modal -->
+<div class="overlay" id="limitOverlay" onclick="if(event.target===this)closeLimitModal()">
+  <div class="modal">
+    <div class="modal-title">年間上限を設定<button class="modal-close" onclick="closeLimitModal()">✕</button></div>
+    <div class="limit-pills" id="limitPills"></div>
+    <p style="font-size:10px;color:var(--muted);margin-bottom:12px;line-height:1.7">
+      103万円：所得税の扶養控除ライン<br>
+      106万円：社会保険加入ライン（週20h以上等の条件あり）<br>
+      130万円：社会保険の扶養ライン（一般的）<br>
+      150万円：配偶者特別控除ライン
+    </p>
+    <div class="fr">
+      <div class="fld"><label>カスタム金額（円）</label><input type="number" id="customLimitInput" min="100000" max="2000000" step="10000" placeholder="例: 1200000"></div>
+      <button class="btn-sm p" onclick="applyCustomLimit()">設定</button>
+    </div>
+  </div>
+</div>
+ 
+<script>
+const PRESET_LIMITS = [1030000,1060000,1300000,1500000];
+const DEFAULT_RATE  = 1350;
+ 
+let targetYear = new Date().getFullYear();
+let baseRate   = DEFAULT_RATE;
+let annualLimit= 1300000;
+let shifts     = [];
+let pastIncome = 0;
+let goalIncome = 0;
+let editingIdx = null;
+let breakList  = [];
+let selectedSummaryMonth = new Date().getMonth()+1;
+ 
+const yk = ()=>'baito_year';
+const sk = ()=>`baito_shifts_${targetYear}`;
+const pk = ()=>`baito_past_${targetYear}`;
+const rk = ()=>`baito_rate_${targetYear}`;
+const gk = ()=>`baito_goal_${targetYear}`;
+const lk = ()=>`baito_limit_${targetYear}`;
+ 
+function load() {
+  targetYear = parseInt(localStorage.getItem(yk())||new Date().getFullYear());
+  baseRate   = parseInt(localStorage.getItem(rk())||DEFAULT_RATE);
+  pastIncome = parseInt(localStorage.getItem(pk())||0);
+  goalIncome = parseInt(localStorage.getItem(gk())||0);
+  annualLimit= parseInt(localStorage.getItem(lk())||1300000);
+  const raw  = localStorage.getItem(sk());
+  shifts     = raw ? JSON.parse(raw) : [];
+ 
+  const seeded = localStorage.getItem('baito_seeded_2026');
+  if (!seeded) {
+    targetYear=2026; baseRate=1350; pastIncome=493597; annualLimit=1300000;
+    localStorage.setItem(yk(),targetYear); localStorage.setItem(rk(),baseRate);
+    localStorage.setItem(pk(),pastIncome); localStorage.setItem(lk(),annualLimit);
+    shifts=[
+      {date:'2026-04-02',start:'17:59',end:'00:24',nextDay:true, breaks:[{time:'22:30',mins:8,isNight:true}],  overtime:true,regularEnd:'00:00',pay:9416, totalMin:377},
+      {date:'2026-04-07',start:'17:56',end:'00:03',nextDay:true, breaks:[{time:'22:00',mins:14,isNight:true},{time:'21:30',mins:9,isNight:false}],overtime:true,regularEnd:'00:00',pay:8374,totalMin:344},
+      {date:'2026-04-11',start:'11:58',end:'18:14',nextDay:false,breaks:[{time:'14:00',mins:8,isNight:false}], overtime:true,regularEnd:'18:00',pay:8359,totalMin:368},
+      {date:'2026-04-16',start:'17:57',end:'22:20',nextDay:false,breaks:[],overtime:true,regularEnd:'22:00',pay:6171,totalMin:263},
+      {date:'2026-04-18',start:'11:56',end:'18:15',nextDay:false,breaks:[{time:'14:00',mins:12,isNight:false}],overtime:true,regularEnd:'18:00',pay:8342,totalMin:367},
+      {date:'2026-04-21',start:'17:57',end:'00:24',nextDay:true, breaks:[{time:'22:00',mins:6,isNight:true}],  overtime:true,regularEnd:'00:00',pay:9551,totalMin:381},
+      {date:'2026-04-21',start:'17:58',end:'22:04',nextDay:false,breaks:[{time:'20:00',mins:10,isNight:false}],overtime:true,regularEnd:'22:00',pay:5361,totalMin:236},
+      {date:'2026-04-22',start:'17:56',end:'00:21',nextDay:true, breaks:[{time:'22:30',mins:7,isNight:true}],  overtime:true,regularEnd:'00:00',pay:9406,totalMin:378},
+      {date:'2026-04-26',start:'11:57',end:'18:18',nextDay:false,breaks:[{time:'14:00',mins:10,isNight:false}],overtime:true,regularEnd:'18:00',pay:8449,totalMin:371},
+      {date:'2026-04-28',start:'17:58',end:'00:01',nextDay:true, breaks:[{time:'22:00',mins:11,isNight:true}], overtime:true,regularEnd:'00:00',pay:8608,totalMin:352},
+    ];
+    localStorage.setItem(sk(),JSON.stringify(shifts));
+    localStorage.setItem('baito_seeded_2026','1');
+  }
+}
+function saveShifts(){localStorage.setItem(sk(),JSON.stringify(shifts));}
+ 
+/* ── Math ── */
+function nightMinsInRange(s,e){let nm=0;for(const[ns,ne]of[[1320,1740],[2760,3180]])nm+=Math.max(0,Math.min(e,ne)-Math.max(s,ns));return nm;}
+function calcSegment(s,e,isOT,rate){if(e<=s)return{total:0,night:0,day:0,dayPay:0,nightPay:0,pay:0};const night=nightMinsInRange(s,e);const day=(e-s)-night;const mul=isOT?1.25:1;const dayPay=(day/60)*rate*mul;const nightPay=(night/60)*rate*1.25*mul;return{total:e-s,night,day,dayPay,nightPay,pay:dayPay+nightPay};}
+function toAbsMin(t,a){const m=toMin(t);return m<a?m+1440:m;}
+function calculateShift(start,end,breaks,hasOT,regEnd,rate){
+  const sMin=toMin(start);let eMin=toMin(end);
+  if(eMin<=sMin)eMin+=1440;
+  let rMin=(hasOT&&regEnd)?toAbsMin(regEnd,sMin):null;
+  const brkIvs=(breaks||[]).filter(b=>b.time&&Number(b.mins)>0)
+    .map(b=>{const bs=toAbsMin(b.time,sMin);return{s:bs,e:bs+Number(b.mins),isNight:!!b.isNight};}).sort((a,b)=>a.s-b.s);
+  function carve(from,to){let ivs=[{s:from,e:to}];for(const brk of brkIvs){const next=[];for(const iv of ivs){if(brk.e<=iv.s||brk.s>=iv.e){next.push(iv);continue;}if(brk.s>iv.s)next.push({s:iv.s,e:brk.s});if(brk.e<iv.e)next.push({s:brk.e,e:iv.e});}ivs=next;}return ivs;}
+  const ws=(hasOT&&rMin!==null)?[{ivs:carve(sMin,rMin),ot:false},{ivs:carve(rMin,eMin),ot:true}]:[{ivs:carve(sMin,eMin),ot:false}];
+  let pay=0,nightMin=0,dayMin=0;const lines=[];
+  for(const w of ws){let sd=0,sn=0,sdp=0,snp=0;for(const iv of w.ivs){const r=calcSegment(iv.s,iv.e,w.ot,rate);sd+=r.day;sn+=r.night;sdp+=r.dayPay;snp+=r.nightPay;pay+=r.pay;}nightMin+=sn;dayMin+=sd;const lbl=w.ot?'残業':'通常';const m=w.ot?1.25:1;if(sd>0)lines.push(`${lbl}・昼間 ${hm(sd)} × ¥${Math.round(rate*m)} = ¥${fmt(sdp)}`);if(sn>0)lines.push(`${lbl}・深夜 ${hm(sn)} × ¥${Math.round(rate*1.25*m)} = ¥${fmt(snp)}`);}
+  const tb=brkIvs.reduce((s,b)=>s+(b.e-b.s),0);const nb=brkIvs.filter(b=>b.isNight).reduce((s,b)=>s+(b.e-b.s),0);
+  if(tb>0)lines.push(`― 休憩合計 ${hm(tb)}（うち深夜 ${hm(nb)}）`);
+  return{pay,totalMin:dayMin+nightMin,nightMin,dayMin,lines};
+}
+function recalcAll(rate){shifts=shifts.map(sh=>{const r=calculateShift(sh.start,sh.end,sh.breaks||[],sh.overtime,sh.regularEnd,rate);return{...sh,pay:Math.round(r.pay),totalMin:r.totalMin};});saveShifts();}
+function toMin(s){const[h,m]=s.split(':').map(Number);return h*60+m;}
+function hm(m){return`${Math.floor(m/60)}h ${Math.round(m%60)}m`;}
+function fmt(n){return Math.round(n).toLocaleString('ja-JP');}
+ 
+/* ── Break UI ── */
+function addBreak(){breakList.push({time:'',mins:0,isNight:false});renderBreaks();}
+function removeBreak(i){breakList.splice(i,1);renderBreaks();}
+function updateBreak(i,field,value){breakList[i][field]=field==='mins'?parseInt(value)||0:field==='isNight'?value:value;renderBreakSummary();}
+function renderBreaks(){
+  document.getElementById('brkList').innerHTML=breakList.map((b,i)=>`
+    <div class="brk-item">
+      <div class="brk-item-row">
+        <div class="fld"><label>開始時刻</label><input type="time" value="${b.time}" onchange="updateBreak(${i},'time',this.value)" oninput="updateBreak(${i},'time',this.value)"></div>
+        <div class="fld"><label>休憩時間（分）</label><input type="number" value="${b.mins||''}" min="1" max="120" step="1" placeholder="例: 5" onchange="updateBreak(${i},'mins',this.value)" oninput="updateBreak(${i},'mins',this.value)"></div>
+        <button class="brk-del" onclick="removeBreak(${i})">✕</button>
+      </div>
+      <div class="brk-night-row">
+        <label for="bn${i}">22時以降の休憩（深夜手当時間帯）</label>
+        <span class="night-badge ${b.isNight?'show':''}">深夜</span>
+        <label class="tgl"><input type="checkbox" id="bn${i}" ${b.isNight?'checked':''} onchange="updateBreak(${i},'isNight',this.checked);this.closest('.brk-night-row').querySelector('.night-badge').classList.toggle('show',this.checked)"><span class="ts"></span></label>
+      </div>
+    </div>`).join('');
+  renderBreakSummary();
+}
+function renderBreakSummary(){
+  const el=document.getElementById('brkSummary');
+  const valid=breakList.filter(b=>b.time&&b.mins>0);
+  if(!valid.length){el.style.display='none';return;}
+  const total=valid.reduce((s,b)=>s+b.mins,0);const night=valid.filter(b=>b.isNight).reduce((s,b)=>s+b.mins,0);
+  el.style.display='block';el.innerHTML=`休憩合計 <b>${total}分</b>（昼間 <b>${total-night}分</b> ／ 深夜 <b>${night}分</b>）`;
+}
+function resetBreaks(){breakList=[];renderBreaks();}
+ 
+/* ── Input form ── */
+function toggleOT(){document.getElementById('otField').classList.toggle('show',document.getElementById('otToggle').checked);}
+function toggleSimOT(){document.getElementById('simOTField').classList.toggle('show',document.getElementById('simOT').checked);}
+ 
+function submitShift(){
+  const date=document.getElementById('workDate').value;
+  const start=document.getElementById('startTime').value;
+  const end=document.getElementById('endTime').value;
+  const ot=document.getElementById('otToggle').checked;
+  const regEnd=document.getElementById('regEndTime').value;
+  if(!date||!start||!end){alert('日付・開始・終了時刻を入力してください');return;}
+  if(ot&&!regEnd){alert('残業ありの場合、所定終了時刻を入力してください');return;}
+  const breaks=breakList.filter(b=>b.time&&b.mins>0);
+  const sM=toMin(start),eM=toMin(end);
+  const r=calculateShift(start,end,breaks,ot,regEnd,baseRate);
+  document.getElementById('resIncome').textContent=`¥${fmt(r.pay)}`;
+  document.getElementById('resHours').textContent=hm(r.totalMin);
+  document.getElementById('resNormal').textContent=hm(r.dayMin);
+  document.getElementById('resNight').textContent=hm(r.nightMin);
+  document.getElementById('breakdown').innerHTML=r.lines.join('<br>');
+  document.getElementById('resultCard').classList.add('show');
+  const sh={date,start,end,nextDay:eM<=sM,breaks,overtime:ot,regularEnd:regEnd,pay:Math.round(r.pay),totalMin:r.totalMin};
+  if(editingIdx!==null){shifts[editingIdx]=sh;editingIdx=null;document.getElementById('inputCardTitle').textContent='勤務を追加';document.getElementById('submitBtn').textContent='この日の勤務を追加';document.getElementById('cancelEditBtn').style.display='none';}
+  else{shifts.push(sh);}
+  saveShifts();updateAll();renderHistory();resetBreaks();
+}
+ 
+function editShift(i){
+  const sh=shifts[i];editingIdx=i;
+  document.getElementById('workDate').value=sh.date;
+  document.getElementById('startTime').value=sh.start;
+  document.getElementById('endTime').value=sh.end;
+  document.getElementById('otToggle').checked=sh.overtime;
+  toggleOT();
+  document.getElementById('regEndTime').value=sh.regularEnd||'';
+  breakList=JSON.parse(JSON.stringify(sh.breaks||[]));renderBreaks();
+  document.getElementById('inputCardTitle').textContent='勤務を編集';
+  document.getElementById('submitBtn').textContent='更新する';
+  document.getElementById('cancelEditBtn').style.display='inline-block';
+  document.getElementById('inputCard').scrollIntoView({behavior:'smooth',block:'start'});
+}
+function cancelEdit(){editingIdx=null;document.getElementById('inputCardTitle').textContent='勤務を追加';document.getElementById('submitBtn').textContent='この日の勤務を追加';document.getElementById('cancelEditBtn').style.display='none';}
+ 
+/* ── Limit modal ── */
+function openLimitModal(){
+  const pills=document.getElementById('limitPills');
+  pills.innerHTML=PRESET_LIMITS.map(l=>`<div class="limit-pill ${annualLimit===l?'active':''}" onclick="selectLimit(${l})">${(l/10000).toFixed(0)}万円</div>`).join('');
+  document.getElementById('customLimitInput').value=annualLimit;
+  document.getElementById('limitOverlay').classList.add('show');
+}
+function closeLimitModal(){document.getElementById('limitOverlay').classList.remove('show');}
+function selectLimit(v){annualLimit=v;localStorage.setItem(lk(),v);closeLimitModal();updateAll();}
+function applyCustomLimit(){const v=parseInt(document.getElementById('customLimitInput').value);if(!v||v<100000){alert('正しい金額を入力してください');return;}selectLimit(v);}
+ 
+/* ── Rate ── */
+let rateCardOpen=false;
+function toggleRateCard(){rateCardOpen=!rateCardOpen;document.getElementById('rateCard').style.display=rateCardOpen?'block':'none';if(rateCardOpen)document.getElementById('rateInput').value=baseRate;}
+function applyRate(){const v=parseInt(document.getElementById('rateInput').value);if(!v||v<800||v>9999){alert('800〜9999円の範囲で入力してください');return;}baseRate=v;localStorage.setItem(rk(),baseRate);recalcAll(baseRate);toggleRateCard();updateAll();renderHistory();}
+ 
+/* ── Past income ── */
+let pastOpen=false;
+function togglePastBody(){pastOpen=!pastOpen;document.getElementById('pastBody').style.display=pastOpen?'block':'none';document.getElementById('pastToggleBtn').textContent=pastOpen?'▴ 閉じる':'▾ 開く';}
+function savePastIncome(){const v=parseInt(document.getElementById('pastIncomeInput').value)||0;pastIncome=v;localStorage.setItem(pk(),pastIncome);updatePastUI();updateAll();}
+function clearPastIncome(){pastIncome=0;localStorage.removeItem(pk());document.getElementById('pastIncomeInput').value='';updatePastUI();updateAll();}
+function updatePastUI(){const row=document.getElementById('pastSavedRow');if(pastIncome>0){row.style.display='flex';document.getElementById('pastSavedVal').textContent=`¥${fmt(pastIncome)}`;document.getElementById('pastIncomeInput').value=pastIncome;if(!pastOpen)togglePastBody();}else{row.style.display='none';}}
+ 
+/* ── Goal ── */
+let goalBodyOpen=false;
+function toggleGoalBody(){goalBodyOpen=!goalBodyOpen;document.getElementById('goalBody').style.display=goalBodyOpen?'block':'none';document.getElementById('goalToggleBtn').textContent=goalBodyOpen?'▴ 閉じる':'▾ 設定';}
+function saveGoal(){const v=parseInt(document.getElementById('goalInput').value)||0;goalIncome=v;localStorage.setItem(gk(),goalIncome);updateGoalUI();renderMonthlyChart();renderMonthlySummary();}
+function clearGoal(){goalIncome=0;localStorage.removeItem(gk());document.getElementById('goalInput').value='';updateGoalUI();renderMonthlyChart();}
+function updateGoalUI(){const row=document.getElementById('goalSavedRow');if(goalIncome>0){row.style.display='flex';document.getElementById('goalSavedVal').textContent=`¥${fmt(goalIncome)}`;document.getElementById('goalInput').value=goalIncome;if(!goalBodyOpen)toggleGoalBody();}else{row.style.display='none';}}
+ 
+/* ── Simulation ── */
+let simBodyOpen=false;
+function toggleSimBody(){simBodyOpen=!simBodyOpen;document.getElementById('simBody').style.display=simBodyOpen?'block':'none';document.getElementById('simToggleBtn').textContent=simBodyOpen?'▴ 閉じる':'▾ 開く';}
+function runSim(){
+  const start=document.getElementById('simStart').value;
+  const end=document.getElementById('simEnd').value;
+  const days=parseInt(document.getElementById('simDays').value);
+  const weeks=parseInt(document.getElementById('simWeeks').value);
+  const ot=document.getElementById('simOT').checked;
+  const regEnd=document.getElementById('simRegEnd').value;
+  if(!start||!end){alert('開始・終了時刻を入力してください');return;}
+  const r=calculateShift(start,end,[],ot,regEnd,baseRate);
+  const perShift=r.pay;const total=perShift*days*weeks;
+  const currentTotal=shifts.reduce((s,sh)=>s+sh.pay,0)+pastIncome;
+  const newTotal=currentTotal+total;
+  const remaining=annualLimit-newTotal;
+  const el=document.getElementById('simResult');
+  el.classList.add('show');
+  const overLimit=newTotal>annualLimit;
+  const overAmt=newTotal-annualLimit;
+  el.innerHTML=`
+    <div style="margin-bottom:8px;font-size:11px;color:var(--muted);letter-spacing:.5px">シミュレーション結果</div>
+    1回あたり <span class="sim-hi">¥${fmt(perShift)}</span>（実働${hm(r.totalMin)}）<br>
+    週${days}回×${weeks}週 = <span class="sim-hi">¥${fmt(total)}</span><br>
+    年間合計 <span class="${overLimit?'sim-danger':'sim-hi'}">¥${fmt(newTotal)}</span>
+    ${overLimit?`<br><span class="sim-danger">⚠️ 上限を¥${fmt(overAmt)}オーバーします！</span>`
+               :`<br><span style="color:var(--accent3)">✓ 上限まで残り¥${fmt(remaining)}</span>`}`;
+}
+ 
+/* ── Monthly chart ── */
+function getMonthlyData(){const m={};for(let i=1;i<=12;i++)m[i]=0;shifts.forEach(sh=>{const d=new Date(sh.date);if(d.getFullYear()===targetYear){const mo=d.getMonth()+1;m[mo]=(m[mo]||0)+sh.pay;}});return m;}
+function renderMonthlyChart(){
+  const data=getMonthlyData();const maxVal=Math.max(...Object.values(data),goalIncome||1,1);
+  const now=new Date();const cur=now.getMonth()+1;
+  const MN=['1','2','3','4','5','6','7','8','9','10','11','12'];
+  document.getElementById('monthBars').innerHTML=Object.entries(data).map(([m,v])=>{
+    const pct=Math.min(100,(v/maxVal)*100);
+    const cls=goalIncome>0&&v>goalIncome?'over-goal':goalIncome>0&&v>=goalIncome?'has-goal':'';
+    const isCur=parseInt(m)===cur;
+    const amt=v>=10000?`${(v/10000).toFixed(1)}万`:v>0?`${Math.round(v/1000)}k`:'';
+    return`<div class="month-bar-wrap" onclick="selectSummaryMonth(${m})">
+      <div class="month-bar-bg" style="border:${isCur?'1px solid var(--accent)':'1px solid transparent'};border-radius:3px;cursor:pointer;">
+        <div class="month-bar-fill ${cls}" style="height:${pct}%"></div>
+      </div>
+      <div class="month-label" style="color:${isCur?'var(--accent)':'var(--muted)'}">${MN[parseInt(m)-1]}</div>
+      <div class="month-amt">${amt}</div>
+    </div>`;
+  }).join('');
+}
+ 
+/* ── Monthly summary ── */
+function selectSummaryMonth(m){selectedSummaryMonth=parseInt(m);renderMonthlySummary();}
+function renderMonthlySummary(){
+  const tabs=document.getElementById('monthTabs');
+  const MN=['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+  tabs.innerHTML=MN.map((n,i)=>`<div class="month-tab ${selectedSummaryMonth===i+1?'active':''}" onclick="selectSummaryMonth(${i+1})">${n}</div>`).join('');
+  const m=selectedSummaryMonth;
+  const mShifts=shifts.filter(sh=>{const d=new Date(sh.date);return d.getFullYear()===targetYear&&d.getMonth()+1===m;});
+  const total=mShifts.reduce((s,sh)=>s+sh.pay,0);
+  const totalMin=mShifts.reduce((s,sh)=>s+sh.totalMin,0);
+  const body=document.getElementById('monthlySummaryBody');
+  if(!mShifts.length){body.innerHTML=`<div class="hem">${m}月の記録はありません</div>`;return;}
+  const goalPct=goalIncome>0?Math.min(100,(total/goalIncome*100)).toFixed(0):null;
+  body.innerHTML=`
+    <div class="msummary-grid">
+      <div class="ms-item"><div class="ms-label">月間収入</div><div class="ms-val" style="color:var(--accent3)">¥${fmt(total)}</div><div class="ms-sub">${goalPct?goalPct+'% 達成':''}</div></div>
+      <div class="ms-item"><div class="ms-label">勤務回数</div><div class="ms-val">${mShifts.length}回</div><div class="ms-sub">1回平均¥${fmt(Math.round(total/mShifts.length))}</div></div>
+      <div class="ms-item"><div class="ms-label">実働時間</div><div class="ms-val">${hm(totalMin)}</div><div class="ms-sub">時給換算</div></div>
+    </div>
+    ${goalIncome>0?`<div style="background:var(--surface);border-radius:8px;padding:8px 12px;margin-bottom:10px;font-size:11px;color:${total>=goalIncome?'var(--accent3)':'var(--warn)'}">
+      ${total>=goalIncome?'🎉 目標達成！':'目標まで¥'+fmt(goalIncome-total)+'（目標¥'+fmt(goalIncome)+'）'}
+    </div>`:''}
+    <div class="hl">${mShifts.map((sh,i)=>{
+      const idx=shifts.findIndex(s=>s===sh);
+      const ot=sh.overtime?'<span class="tag ot">残業</span>':'';
+      const nd=sh.nextDay?'<span class="tag nd">翌日</span>':'';
+      const brks=(sh.breaks||[]).filter(b=>b.time&&b.mins>0);
+      const bt=brks.reduce((s,b)=>s+b.mins,0);
+      const bn=brks.filter(b=>b.isNight).reduce((s,b)=>s+b.mins,0);
+      const btxt=bt>0?`休憩${bt}分${bn>0?'（深夜'+bn+'分）':''} / `:'';
+      return`<div class="hi-item"><div class="hi-main">
+        <div class="hid">${sh.date.slice(5)}</div>
+        <div class="hdet">${sh.start}〜${sh.end}${nd}${ot}<br><span>${btxt}実働${hm(sh.totalMin)}</span></div>
+        <div class="ham">¥${fmt(sh.pay)}</div>
+        <div class="hi-actions"><button class="hedit" onclick="editShift(${idx})">編集</button><button class="hdel" onclick="deleteShift(${idx})">✕</button></div>
+      </div></div>`;
+    }).join('')}</div>`;
+}
+ 
+/* ── Advice ── */
+function weeksLeft(){return Math.max(1,Math.round((new Date(targetYear,11,31)-new Date())/(7*24*3600*1000)));}
+function genAdvice(rem,rate){
+  const items=[];if(rem<=0){items.push('年間上限に達しました。これ以上シフトは入れないようにしましょう。');return items;}
+  const wks=weeksLeft();const wkBudget=rem/wks;
+  items.push(`残り約${wks}週 ／ 週あたり予算¥${fmt(Math.round(wkBudget))}`);
+  const patterns=[{d:2,h:5},{d:3,h:4},{d:2,h:6},{d:4,h:3},{d:1,h:8}];
+  const best=patterns.find(p=>p.d*p.h*rate<=wkBudget*1.05);
+  if(best)items.push(`週${best.d}日×${best.h}時間（昼）がちょうど良いペース（週¥${fmt(Math.round(best.d*best.h*rate))}）`);
+  items.push(`深夜シフトなら週${(wkBudget/(rate*1.25)).toFixed(1)}h（22〜5時）で同額`);
+  if(rem<100_000)items.push(`⚠️ 残り¥${fmt(rem)} — あと${Math.floor(rem/rate)}hほどで上限です`);
+  else if(rem<300_000)items.push(`残り¥${fmt(rem)}。あと2〜3ヶ月で到達する可能性があります`);
+  return items;
+}
+ 
+/* ── Update dashboard ── */
+function updateAll(){
+  const st=shifts.reduce((s,sh)=>s+sh.pay,0);
+  const total=st+pastIncome;const rem=annualLimit-total;const pct=Math.min(100,(total/annualLimit)*100);
+  document.getElementById('totalEarned').textContent=fmt(total);
+  document.getElementById('remainingDisplay').textContent=`¥${fmt(Math.max(0,rem))}`;
+  document.getElementById('barPct').textContent=`${pct.toFixed(1)}%`;
+  document.getElementById('rateLabel').textContent=`¥${fmt(baseRate)}`;
+  document.getElementById('limitLabel').textContent=`${(annualLimit/10000).toFixed(0)}万`;
+  document.getElementById('limitDisplay').textContent=`上限 ${fmt(annualLimit)}円 ▾`;
+  const bar=document.getElementById('barFill');
+  bar.style.width=pct+'%';bar.className='bar-fill'+(pct>=90?' danger':pct>=70?' warn':'');
+  // markers for each limit line
+  const markers=document.getElementById('barMarkers');
+  markers.innerHTML=PRESET_LIMITS.filter(l=>l<annualLimit).map(l=>{
+    const p=(l/annualLimit*100).toFixed(1);
+    return`<div class="bar-marker" style="left:${p}%">${(l/10000).toFixed(0)}万</div>`;
+  }).join('');
+  document.getElementById('adviceCard').classList.add('show');
+  const r2=Math.max(0,rem);
+  document.getElementById('futMoney').textContent=`¥${fmt(r2)}`;
+  document.getElementById('futHours').textContent=`${(r2/baseRate).toFixed(1)}h`;
+  document.getElementById('futNight').textContent=`${(r2/(baseRate*1.25)).toFixed(1)}h`;
+  document.getElementById('futOT').textContent=`${(r2/(baseRate*1.25)).toFixed(1)}h`;
+  document.getElementById('advList').innerHTML=genAdvice(r2,baseRate).map(t=>`<li>${t}</li>`).join('');
+  const al=document.getElementById('alertBox');al.className='alert-box';
+  if(rem<=0){al.className='alert-box danger';al.textContent=`⚠️ 年間上限（${fmt(annualLimit)}円）に達しました。扶養控除に影響する可能性があります。`;}
+  else if(rem<100_000){al.className='alert-box warn';al.textContent=`⚠️ 残り¥${fmt(rem)}。上限まであとわずかです！`;}
+  renderMonthlyChart();renderMonthlySummary();
+}
+ 
+/* ── History ── */
+function renderHistory(){
+  const c=document.getElementById('historyList');
+  if(!shifts.length){c.innerHTML='<div class="hem">まだ記録がありません</div>';return;}
+  c.innerHTML=[...shifts].map((sh,i)=>({...sh,idx:i})).reverse().map(sh=>{
+    const ot=sh.overtime?'<span class="tag ot">残業</span>':'';
+    const nd=sh.nextDay?'<span class="tag nd">翌日</span>':'';
+    const brks=(sh.breaks||[]).filter(b=>b.time&&b.mins>0);
+    const bt=brks.reduce((s,b)=>s+b.mins,0);const bn=brks.filter(b=>b.isNight).reduce((s,b)=>s+b.mins,0);
+    const btxt=bt>0?`休憩${bt}分${bn>0?'（深夜'+bn+'分）':''} / `:'';
+    return`<div class="hi-item"><div class="hi-main">
+      <div class="hid">${sh.date}</div>
+      <div class="hdet">${sh.start}〜${sh.end}${nd}${ot}<br><span>${btxt}実働${hm(sh.totalMin)}</span></div>
+      <div class="ham">¥${fmt(sh.pay)}</div>
+      <div class="hi-actions"><button class="hedit" onclick="editShift(${sh.idx})">編集</button><button class="hdel" onclick="deleteShift(${sh.idx})">✕</button></div>
+    </div></div>`;
+  }).join('');
+}
+function deleteShift(i){if(!confirm('この記録を削除しますか？'))return;shifts.splice(i,1);saveShifts();updateAll();renderHistory();}
+function clearAll(){if(!confirm('全ての履歴を削除しますか？'))return;shifts=[];saveShifts();updateAll();renderHistory();document.getElementById('resultCard').classList.remove('show');}
+ 
+/* ── Export ── */
+function exportCSV(){
+  const rows=[['日付','開始','終了','翌日','残業','所定終了','休憩合計(分)','深夜休憩(分)','実働時間(分)','収入(円)']];
+  shifts.forEach(sh=>{
+    const brks=(sh.breaks||[]).filter(b=>b.time&&b.mins>0);
+    const bt=brks.reduce((s,b)=>s+b.mins,0);const bn=brks.filter(b=>b.isNight).reduce((s,b)=>s+b.mins,0);
+    rows.push([sh.date,sh.start,sh.end,sh.nextDay?'○':'',sh.overtime?'○':'',sh.regularEnd||'',bt,bn,sh.totalMin,sh.pay]);
+  });
+  const csv=rows.map(r=>r.join(',')).join('\n');
+  download(`baito_${targetYear}.csv`,'text/csv',csv);
+}
+function exportText(){
+  const monthly=getMonthlyData();
+  const total=shifts.reduce((s,sh)=>s+sh.pay,0)+pastIncome;
+  let txt=`バイト収入記録 ${targetYear}年\n${'='.repeat(30)}\n\n`;
+  txt+=`年間合計: ¥${fmt(total)} / ¥${fmt(annualLimit)} (${(total/annualLimit*100).toFixed(1)}%)\n`;
+  txt+=`時給: ¥${fmt(baseRate)}\n\n`;
+  for(let m=1;m<=12;m++){
+    const ms=shifts.filter(sh=>new Date(sh.date).getMonth()+1===m&&new Date(sh.date).getFullYear()===targetYear);
+    if(!ms.length)continue;
+    txt+=`【${m}月】合計¥${fmt(monthly[m])} (${ms.length}回)\n`;
+    ms.forEach(sh=>txt+=`  ${sh.date} ${sh.start}〜${sh.end} ¥${fmt(sh.pay)}\n`);
+    txt+='\n';
+  }
+  download(`baito_${targetYear}.txt`,'text/plain',txt);
+}
+function exportJSON(){
+  const data={targetYear,baseRate,annualLimit,pastIncome,goalIncome,shifts,exportedAt:new Date().toISOString()};
+  download(`baito_backup_${targetYear}.json`,'application/json',JSON.stringify(data,null,2));
+}
+function importJSON(){
+  const input=document.createElement('input');input.type='file';input.accept='.json';
+  input.onchange=e=>{
+    const file=e.target.files[0];if(!file)return;
+    const reader=new FileReader();
+    reader.onload=ev=>{
+      try{
+        const data=JSON.parse(ev.target.result);
+        if(!confirm(`${data.targetYear}年のデータを復元しますか？現在のデータは上書きされます。`))return;
+        targetYear=data.targetYear;baseRate=data.baseRate;annualLimit=data.annualLimit||1300000;
+        pastIncome=data.pastIncome;goalIncome=data.goalIncome||0;shifts=data.shifts;
+        localStorage.setItem(yk(),targetYear);localStorage.setItem(rk(),baseRate);
+        localStorage.setItem(pk(),pastIncome);localStorage.setItem(gk(),goalIncome);
+        localStorage.setItem(lk(),annualLimit);localStorage.setItem(sk(),JSON.stringify(shifts));
+        init();alert('復元しました！');
+      }catch{alert('ファイルの読み込みに失敗しました');}
+    };reader.readAsText(file);
+  };input.click();
+}
+function download(name,type,content){
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\uFEFF'+content],{type}));
+  a.download=name;a.click();
+}
+ 
+/* ── AI Advisor ── */
+function getAdviceData(){
+  const now=new Date();const curMonth=now.getMonth()+1;const curDay=now.getDate();
+  const daysInMonth=new Date(now.getFullYear(),curMonth,0).getDate();const daysLeft=daysInMonth-curDay;
+  const monthly=getMonthlyData();const shiftsTotal=shifts.reduce((s,sh)=>s+sh.pay,0);
+  const total=shiftsTotal+pastIncome;const rem=Math.max(0,annualLimit-total);
+  const thisMonth=monthly[curMonth]||0;const wks=weeksLeft();
+  const avgPerShift=shifts.length>0?shiftsTotal/shifts.length:0;
+  const monthGoalRem=goalIncome>0?Math.max(0,goalIncome-thisMonth):null;
+  const nightRate=baseRate*1.25;const otRate=baseRate*1.25;const otNightRate=baseRate*1.5625;
+  const thisMonthShifts=shifts.filter(sh=>{const d=new Date(sh.date);return d.getFullYear()===targetYear&&d.getMonth()+1===curMonth;});
+  return{now,curMonth,curDay,daysLeft,daysInMonth,monthly,total,rem,thisMonth,wks,avgPerShift,monthGoalRem,shiftsTotal,thisMonthShifts,nightRate,otRate,otNightRate};
+}
+function generateReply(text){
+  const q=text.toLowerCase().replace(/[？?！!。、]/g,'').trim();const d=getAdviceData();
+  if(q.includes('今月')&&(q.includes('いくら')||q.includes('稼げ')||q.includes('残り'))){
+    if(d.monthGoalRem!==null){if(d.thisMonth>=goalIncome)return`今月はすでに目標（¥${fmt(goalIncome)}）を達成しています🎉 今月の収入は¥${fmt(d.thisMonth)}です。`;const hrs=(d.monthGoalRem/baseRate).toFixed(1);return`今月の目標まであと¥${fmt(d.monthGoalRem)}です。通常シフトなら約${hrs}時間で達成できます。残り${d.daysLeft}日なので1日${(hrs/Math.max(d.daysLeft,1)).toFixed(1)}時間ペースです。`;}
+    return`今月（${d.curMonth}月）の収入は現在¥${fmt(d.thisMonth)}です。年間残り¥${fmt(d.rem)}で残り${d.daysLeft}日あります。月の目標を設定するともっと具体的なアドバイスができますよ！`;
+  }
+  if(q.includes('目標')&&(q.includes('達成')||q.includes('できそう')||q.includes('いける'))){
+    if(!goalIncome)return`月の目標がまだ設定されていません。「月の目標収入」カードから設定すると達成度を分析できます！`;
+    if(d.thisMonth>=goalIncome)return`今月はすでに¥${fmt(d.thisMonth)}稼いでいて目標¥${fmt(goalIncome)}を達成しています🎉`;
+    const hrs=(d.monthGoalRem/baseRate).toFixed(1);const hpd=(hrs/Math.max(d.daysLeft,1)).toFixed(1);
+    if(d.daysLeft<=0)return`今月は残り日数がほぼありませんが¥${fmt(d.thisMonth)}稼ぎました。来月は月初からペースを上げましょう！`;
+    return parseFloat(hpd)<=6?`あと¥${fmt(d.monthGoalRem)}で目標達成！残り${d.daysLeft}日で1日${hpd}時間ほど働けばOKです💪`:`目標まであと¥${fmt(d.monthGoalRem)}、残り${d.daysLeft}日で1日${hpd}時間必要です。深夜シフトなら¥${fmt(Math.round(d.nightRate))}時給で短縮できます。`;
+  }
+  if(q.includes('おすすめ')||(q.includes('シフト')&&q.includes('教えて'))||q.includes('何時間')){
+    const wb=d.rem/d.wks;const patterns=[{d:2,h:5},{d:3,h:4},{d:2,h:6},{d:4,h:3},{d:1,h:8}];
+    const best=patterns.find(p=>p.d*p.h*baseRate<=wb*1.05)||patterns[0];
+    return`残り¥${fmt(d.rem)}を${d.wks}週で消化するなら週予算¥${fmt(Math.round(wb))}です。\n\nおすすめは「週${best.d}日×${best.h}時間」（週¥${fmt(Math.round(best.d*best.h*baseRate))}）。深夜22〜5時なら週${(wb/d.nightRate).toFixed(1)}時間で同額稼げます！`;
+  }
+  if(q.includes('130万')||q.includes('上限')||q.includes('扶養')){
+    const pct=Math.min(100,(d.total/annualLimit*100)).toFixed(1);
+    if(d.rem<=0)return`すでに年間上限（¥${fmt(annualLimit)}）に達しています⚠️ これ以上働くと扶養から外れる可能性があります。`;
+    if(d.rem<100_000)return`上限まであと¥${fmt(d.rem)}です（${pct}%消化）⚠️`;
+    const mLeft=12-d.curMonth+1;return`現在¥${fmt(d.total)}で上限まで¥${fmt(d.rem)}残っています（${pct}%消化）。残り${mLeft}ヶ月で月¥${fmt(Math.round(d.rem/mLeft))}ペースなら安全です。`;
+  }
+  if(q.includes('深夜')&&(q.includes('お得')||q.includes('得')||q.includes('違い'))){
+    return`深夜（22〜5時）は時給¥${fmt(baseRate)}→¥${fmt(Math.round(d.nightRate))}になります。1時間あたり¥${fmt(Math.round(d.nightRate-baseRate))}お得！\n\n5時間の深夜シフトなら¥${fmt(Math.round(d.nightRate*5))}（通常比+¥${fmt(Math.round((d.nightRate-baseRate)*5))}）になります。`;
+  }
+  if(q.includes('残業')){return`残業は時給×1.25で¥${fmt(Math.round(d.otRate))}、深夜残業は×1.5625で¥${fmt(Math.round(d.otNightRate))}です。\n\n深夜残業が最も効率が良いので残り枠が少ない時期に特におすすめです。`;}
+  if(q.includes('ペース')||q.includes('このまま')||q.includes('大丈夫')){
+    const vals=Object.values(d.monthly).filter(v=>v>0);if(!vals.length)return`まだ記録が少ないのでペース分析ができません。数ヶ月分記録すると精度が上がります！`;
+    const avg=vals.reduce((a,b)=>a+b,0)/vals.length;const mToLimit=(d.rem/avg).toFixed(1);
+    return`月平均収入は¥${fmt(Math.round(avg))}です。このペースだと約${mToLimit}ヶ月で年間上限に達する計算です。\n\n${parseFloat(mToLimit)<3?'上限が近いので注意が必要です⚠️':parseFloat(mToLimit)>8?'上限まで余裕があります。もう少し増やしても大丈夫です！':'良いペースで稼げています👍'}`;
+  }
+  if(q.includes('平均')||q.includes('合計')){
+    if(!shifts.length)return`まだシフトの記録がありません。`;
+    return`これまで${shifts.length}回勤務して¥${fmt(d.shiftsTotal)}稼ぎました（1回平均¥${fmt(Math.round(d.avgPerShift))}）。\n\n過去分含む年間合計は¥${fmt(d.total)}で上限の${(d.total/annualLimit*100).toFixed(1)}%です。`;
+  }
+  return`現在の状況：年間¥${fmt(d.total)}（上限まで¥${fmt(d.rem)}）、今月¥${fmt(d.thisMonth)}${goalIncome>0?'、月目標¥'+fmt(goalIncome):''}、残り約${d.wks}週。\n\n「今月あといくら稼げる？」「おすすめシフトを教えて」「130万円に近づいてる？」など聞いてみてください😊`;
+}
+function sendAI(){
+  const input=document.getElementById('aiInput');const text=input.value.trim();if(!text)return;
+  input.value='';input.style.height='auto';appendMsg('user',text);
+  const loadId=appendLoading();setTimeout(()=>{removeLoading(loadId);appendMsg('ai',generateReply(text));},500);
+}
+function sendChip(el){document.getElementById('aiInput').value=el.textContent;sendAI();}
+function appendMsg(role,text){
+  const msgs=document.getElementById('aiMsgs');const div=document.createElement('div');div.className=`msg ${role}`;
+  if(role==='ai')div.innerHTML=`<div class="msg-label">AI ADVISOR</div>${text.replace(/\n/g,'<br>')}`;
+  else div.textContent=text;msgs.appendChild(div);msgs.scrollTop=msgs.scrollHeight;return div;
+}
+let lc=0;
+function appendLoading(){const id=++lc;const msgs=document.getElementById('aiMsgs');const div=document.createElement('div');div.className='msg loading';div.dataset.lid=id;div.innerHTML='<div class="dots"><span></span><span></span><span></span></div>';msgs.appendChild(div);msgs.scrollTop=msgs.scrollHeight;return id;}
+function removeLoading(id){document.querySelector(`[data-lid="${id}"]`)?.remove();}
+ 
+/* ── Year / PWA ── */
+function changeYear(){const y=prompt('対象年度を入力（例: 2025）',targetYear);if(y&&!isNaN(y)&&y.length===4){targetYear=parseInt(y);localStorage.setItem(yk(),targetYear);load();init();}}
+let deferredPrompt=null;
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;document.getElementById('btnInstall').style.display='block';showPwa();});
+document.getElementById('btnInstall').addEventListener('click',async()=>{if(!deferredPrompt)return;deferredPrompt.prompt();const{outcome}=await deferredPrompt.userChoice;if(outcome==='accepted')closePwa();deferredPrompt=null;});
+function showPwa(){const sa=window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone;if(!sa&&!sessionStorage.getItem('pwa_off'))document.getElementById('pwaBanner').style.display='flex';}
+function closePwa(){document.getElementById('pwaBanner').style.display='none';sessionStorage.setItem('pwa_off','1');}
+ 
+/* ── Init ── */
+function init(){
+  document.getElementById('yearLabel').textContent=`${targetYear}年`;
+  document.getElementById('workDate').value=new Date().toISOString().split('T')[0];
+  updatePastUI();updateGoalUI();updateAll();renderHistory();renderBreaks();
+  const ios=/iphone|ipad|ipod/i.test(navigator.userAgent);if(ios&&!window.navigator.standalone)showPwa();
+}
+load();init();
+</script>
+</body>
+</html>
+ 
